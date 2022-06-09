@@ -1,4 +1,6 @@
-﻿create table KhachHang(
+﻿--Câu a 
+--Tạo bảng 
+create table KhachHang(
 	maKH char(5) primary key,
 	Hoten nvarchar(30),
 	SoDT char(12),
@@ -22,7 +24,7 @@ create table hopdong(
 	constraint maKH_fk foreign key (maKH) references KhachHang
 )
 
-
+--Nhập database 
 insert into KhachHang (maKH, Hoten, SoDT, Coquan) values
 ('KH01', N'Lương Dũng Trí', '881-572-6571', N'Công ty TNHH Vật liệu mới Haixin Việt Nam'),
 ('KH02', N'Nguyễn Anh Khải', '325-161-2684', N'Công ty TNHH Microtechno Việt Nam'),
@@ -63,25 +65,49 @@ insert into hopdong (maN, maKH, Ngaybatdau, ngayketthuc) values
 ('HM07', 'KH13', '2000/8/28', '2006/10/10'),
 ('HM08', 'KH15', '2002/7/16', '2003/3/14'),
 ('HM06', 'KH11', '2005/3/24', '2007/2/7')
-
+-- Câu b
+--1. Đưa ra danh sách (Địachỉ, Tênchủnhà) của những ngôi nhà có giá thuê ít hơn 10 triệu.
 select Diachi,Tenchunha from nhachothue
 where Giathue < 10000000
-
+--2. Đưa ra danh sách (MãKH, Họtên, Cơquan) của những người đã từng thuê nhà của chủnhà có tên là "Nông Văn Dền"
 select k.maKH, hoten, coquan from KhachHang k
 join hopdong h
 on k.maKH = h.maKH
 join nhachothue n
 on h.maN = n.maN
-where n.Tenchunha = N'Thịnh Nam Dương'
-
-select n.MaN 
+where n.Tenchunha = N'Thịnh Nam Dương' -- Nông Văn Dền không có ai thuê nên ta truy vấn Thịnh Tam Dương 
+-- Đưa ra danh sách các ngôi nhà chưa từng được ai thuê
+select n.MaN as Nha_chua_duoc_ai_thue
 from nhachothue n
 left join hopdong h
 on h.MaN = n.MaN
-where h.MaN = NULL
+where h.maN is null
 
+
+-- Đưa ra giá thuê cao nhất trong sốcác giá thuê của các ngôi nhà đã từng ít nhất một lần được thuê.
 select max(nhachothue.Giathue) as GiaThueCaoNhat
 from nhachothue
 inner join hopdong
 on hopdong.MaN = nhachothue.MaN
 having count(hopdong.MaN) > 1
+
+-- Câu d
+-- Đưa ra danhsách  các  Hợp đồng  có  giá  thuê  lớnhơn một ngưỡng  cho trước.
+create procedure contract_bigger_than @fee INT 
+as 
+select  c.maKH 
+from hopdong c
+inner join nhachothue h 
+on c.maN = h.maN
+where  h.giathue > @fee
+-- exec contract_bigger_than @fee = 500000
+-- Đưa ra danh sách khách hàngcó tổng giá trịhợp đồng lớn hơn một ngưỡng cho trước.
+create procedure sumof_bigger_than @sum INT 
+as 
+select cu.Hoten,sum(h.giathue) 
+from hop_dong c
+inner join nha_cho_thue h 
+on c.maN = h.maN
+inner join khach_hang cu
+on cu.maKH = c.maKH
+group by cu.maKH,cu.Hoten
